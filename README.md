@@ -1,1 +1,0 @@
-# Haunted-High-Country-Tour-Map
