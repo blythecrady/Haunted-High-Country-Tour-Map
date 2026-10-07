@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset=utf-8 />
+    <title>A Haunted Tour of the High Country</title>
+    <meta name='viewport' content='initial-scale=1,maximum-scale=1,user-scalable=no' />
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/normalize/5.0.0/normalize.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.0.1/dist/leaflet.css" />
+
+    <link href="https://fonts.googleapis.com/css?family=Noto+Sans" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css?family=Lora" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Creepster&display=swap" rel="stylesheet">
+
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background: #1a1a1a;
+            font-family: "Noto Sans", sans-serif;
+            color: #e0e0e0;
+        }
+
+        h1 {
+            position: absolute;
+            margin-top: 0;
+            top: 10px;
+            left: 45px;
+            font-size: 2.3em;
+            font-family: "Creepster", cursive;
+            letter-spacing: .02em;
+            padding: 10px 15px;
+            background: rgba(25, 25, 25, 0.92);
+            color: #b22222;
+            border: 1px solid #555;
+            border-radius: 3px;
+            z-index: 800;
+        }
+
+        h2 {
+            font-family: "Lora", serif;
+            letter-spacing: .04em;
+            color: #e0e0e0;
+        }
+
+        #map {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            width: 100%;
+        }
+
+        section {
+            position: absolute;
+            bottom: 0;
+            left: 10px;
+            width: 280px;
+            margin: 20px auto;
+            padding: 0 15px;
+            background: rgba(25, 25, 25, 0.92);
+            color: #e0e0e0;
+            border: 1px solid #555;
+            border-radius: 3px;
+            z-index: 800;
+        }
+
+        p {
+            font-size: .9em;
+            line-height: 1.5em;
+        }
+
+        a {
+            color: #d46a6a;
+            text-decoration: none;
+        }
+
+        a:hover {
+            color: #ff9999;
+            text-decoration: underline;
+        }
+
+        .stop-tip {
+            white-space: normal;
+            width: 280px;
+            font-size: 0.85em;
+            line-height: 1.4em;
+        }
+    </style>
+</head>
+
+<body>
+
+    <h1>A Haunted Tour of the High Country</h1>
+
+    <div id='map'></div>
+
+    <section>
+        <h2>About this map</h2>
+
+        <p>
+            This map takes you on a journey from the Rankin Science building on Appalachian State University's
+            campus to various haunted locations in the High Country ending with Wiseman's View, where you might
+            catch the famous and unexplained Brown Mountain Lights.
+        </p>
+
+        <p>
+            Haunted locations and descriptions provided by
+            <a href="https://www.exploreboone.com/blog/post/nc-high-country-hauntings/" target="_blank">
+                Explore Boone
+            </a>.
+        </p>
+
+        <p>
+            Map by Blythe Crady
+        </p>
+    </section>
+
+    <script src="https://code.jquery.com/jquery-3.1.1.min.js"></script>
+    <script src="https://unpkg.com/leaflet@1.0.1/dist/leaflet.js"></script>
+
+    <script src="data/route.js"></script>
+
+    <script>
+
+        var options = {
+            center: [36.08403, -81.83015],
+            zoom: 16
+        }
+
+        var map = L.map('map', options);
+
+        var CartoDB_DarkMatter = L.tileLayer(
+            'https://basemaps.cartocdn.com/rastertiles/dark_all/{z}/{x}/{y}.png?key=cb1_4de8_1_c749af0ab61d7628f3625fe6', {
+                minZoom: 0,
+                maxZoom: 20,
+                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
+            }
+        ).addTo(map);
+
+        var myRoute = L.geoJson(data, {
+            filter: function (feature) {
+                if (feature.geometry.type == "LineString") {
+                    return feature;
+                }
+            },
+            style: function (feature) {
+                return {
+                    color: "#c2410c",
+                    weight: 5,
+                    opacity: 0.8,
+                    dashArray: "3, 3"
+                }
+            }
+        }).addTo(map);
+
+        var myStops = L.geoJson(data, {
+            filter: function (feature) {
+                if (feature.geometry.type == "Point") {
+                    return feature;
+                }
+            },
+            pointToLayer: function (feature, latlng) {
+
+                if (feature.properties['name'] == "Rankin Science Building") {
+                    return L.marker(latlng);
+                }
+
+                return L.marker(latlng, {
+                    icon: L.divIcon({
+                        className: "",
+                        html: '<div style="font-size:30px;line-height:30px;">👻</div>',
+                        iconSize: [30, 30],
+                        iconAnchor: [15, 15],
+                        tooltipAnchor: [15, 0]
+                    })
+                });
+            },
+
+            onEachFeature: function (feature, layer) {
+
+                var html = "<strong>" + feature.properties['name'] + "</strong>";
+
+                if (feature.properties['desc']) {
+                    html += "<br>" + feature.properties['desc'];
+                }
+
+                layer.bindTooltip(html, {
+                    className: "stop-tip"
+                });
+            }
+
+        }).addTo(map);
+
+        map.fitBounds(myRoute.getBounds());
+
+    </script>
+
+</body>
+
+</html>
